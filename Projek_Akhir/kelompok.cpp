@@ -623,7 +623,7 @@ void tampilkanPeringkatBuku() {
         cout << "Banyak Dipinjam : " << data[i].totalPinjam << "x" << endl;
         cout << "Daftar Peminjam : " << endl;
         for (int j = 0; j < data[i].count; j++)
-            cout << "" << data[i].peminjam[j] << endl;
+            cout << j + 1 << ". " << data[i].peminjam[j] << endl;
         cout << "------------------------\n";
     }
 }
@@ -679,6 +679,12 @@ void peminjaman_blm_dikembalikan() {
         }
     }
     inFile.close();
+
+    if (totalBuku == 0) {
+        cout << "Tidak ada anggota yang sedang meminjam buku.\n";
+        cout << "----------------------------------------------\n";
+        return;
+    }
 
     // urutkan buku berdasarkan total pinjam
     for (int i = 0; i < totalBuku - 1; i++) {
@@ -743,16 +749,56 @@ void pengembalian_buku() {
         else if (line.find("Status:") == 0)
             status = line.substr(7);
         else if (line == "----") {
+            
+            
+
             // cek jika nama & judul cocok dan belum dikembalikan
             if (nama == nama_anggota && judul == judul_buku && status == "1") {
                 ditemukan = true;
                 statusNum = 0; // ubah status jadi dikembalikan
-                cout << "\nBuku \"" << judul << "\" telah dikembalikan oleh " << nama << endl;
 
                 // catat tanggal pengembalian
                 time_t now = time(0);
                 tm *ltm = localtime(&now);
                 string tgl_kembali = to_string(ltm->tm_mday) + "-" + to_string(1 + ltm->tm_mon) + "-" + to_string(1900 + ltm->tm_year);
+                
+                int hari_injam, bulan_pinjam, tahun_injam;
+                sscanf(tgl.c_str(), "%d-%d-%d", &hari_injam, &bulan_pinjam, &tahun_injam);
+
+                // tanggal pinjam 
+                tm tmPinjam = {};
+                tmPinjam.tm_mday = hari_injam;
+                tmPinjam.tm_mon = bulan_pinjam - 1;
+                tmPinjam.tm_year = tahun_injam - 1900;
+                time_t timePinjam = mktime(&tmPinjam);
+
+                // tanggal kembali
+                tm tmKembali = {};
+                tmKembali.tm_mday = ltm->tm_mday;
+                tmKembali.tm_mon = ltm->tm_mon;
+                tmKembali.tm_year = ltm->tm_year;
+                time_t timeKembali = mktime(&tmKembali);
+
+                // hitung selisih hari
+                double selisihDetik = difftime(timeKembali, timePinjam);
+                int selisihHari = selisihDetik / (60 * 60 * 24);
+
+                // Hitung denda
+                int denda = 0;
+                if (selisihHari > 7) {
+                    denda = (selisihHari - 7) * 1000;
+                }
+
+                cout << "\nBuku \"" << judul << "\" telah dikembalikan oleh " << nama << endl;
+                cout << "------------------------------------------------\n";
+
+                if (denda > 0) {
+                    cout << "7 hari terlambat mengembalikan buku jadi " << selisihHari - 7 << " hari menunda. Denda: Rp." << denda << endl;
+                    cout << "------------------------------------------------\n";
+                } else {
+                    cout << "Tidak terlambat. Tidak ada denda." << endl;
+                    cout << "------------------------------------------------\n";
+                }
 
                 tempFile << "ID_Peminjaman:" << id_pjm << endl;
                 tempFile << "Nama_Anggota:" << nama << endl;
@@ -808,8 +854,10 @@ void pengembalian_buku() {
 
     if (!ditemukan) {
         cout << "\nData peminjaman tidak ditemukan atau buku sudah dikembalikan.\n";
+        cout <<"------------------------------------------------\n";
     } else {
         cout << "Pengembalian berhasil dicatat.\n";
+        cout <<"------------------------------------------------\n";
     }
 }
 
@@ -973,7 +1021,7 @@ void cari_peminjam() {
                 cout << "Judul Buku    : " << judul << endl;
                 cout << "Tanggal Pinjam: " << tgl_pinjam << endl;
                 if (!tgl_kembali.empty())
-                    cout << "Tanggal Kembali: " << tgl_kembali << endl;
+                    cout << "Tgl Kembali   : " << tgl_kembali << endl;
                 cout << "Status        : " << (status == "1" ? "Belum Dikembalikan" : "Sudah Dikembalikan") << endl;
                 cout << "------------------------------\n";
                 ditemukan = true;
