@@ -15,7 +15,7 @@ struct petugas {
 
 //struktur anggota
 struct anggota {
-    string id_anggota ;
+    int id_anggota ;
     string kode_anggota ;
     string nama;
     string alamat;
@@ -116,10 +116,7 @@ int buatID(int nomor) {
     return (100000 + nomor); 
 }
 
-//funtion buat ID anggota
-int buatIDanggota(int nomor) {
-    return (100000 + nomor); 
-}
+
 
 //function buat kode anggota
 string buatKodeanggota(int tahun, int bulan, int hari, int urutan) {
@@ -145,7 +142,7 @@ int konversinama(string nama) {
 //function buat ISBN
 string buatISBN(int urutan, string namaPenerbit) {
     string prefix = "978";
-    string negara = "602";
+    string negara = "602";//khusus Indonesia
 
     int nomorpenerbit = konversinama(namaPenerbit);
     string penerbit = to_string(nomorpenerbit);
@@ -339,6 +336,7 @@ void tambahAnggota() {
     while (getline(inFile, line)) {
         if (line.find("Kode:") != string::npos)
             count++;
+    
     }
     inFile.close();
 
@@ -370,12 +368,13 @@ void tambahAnggota() {
     a.status = 1;
     
 
-    a.id_anggota = buatIDanggota(count + 1);
+    a.id_anggota = 300000 + (count + 1);
     a.kode_anggota = buatKodeanggota(a.ttl.tahun, a.ttl.bulan, a.ttl.hari, count + 1);
     
 
     ofstream outFile("anggota.txt", ios::app);
-    outFile << "Kode:" << a.id_anggota << endl;
+    outFile << "Kode:" << a.kode_anggota << endl;
+    outFile << "ID:" << a.id_anggota << endl;
     outFile << "Nama:" << a.nama << endl;
     outFile << "Alamat:" << a.alamat << endl;
     outFile << "Tanggal:" << a.ttl.hari << "-" << a.ttl.bulan << "-" << a.ttl.tahun << endl;
@@ -384,7 +383,7 @@ void tambahAnggota() {
     outFile << "----" << endl;
     outFile.close();
 
-    cout << "\nAnggota berhasil ditambahkan dengan Kode Anggota: " << a.id_anggota << endl;
+    cout << "\nAnggota berhasil ditambahkan dengan Kode Anggota: " << a.kode_anggota << endl;
     cout << "------------------------------------------------------------------------------\n";
     
 }
@@ -937,12 +936,14 @@ void cari_anggota() {
 
     string line;
     bool ditemukan = false;
-    string kode, nama, alamat, tanggal, email;
+    string kode, id, nama, alamat, tanggal, email;
     int status = 0;
 
     while (getline(file, line)) {
         if (line.find("Kode:") == 0)
             kode = line.substr(5);
+        else if (line.find("ID:") == 0)
+            id = line.substr(3); 
         else if (line.find("Nama:") == 0)
             nama = line.substr(5);
         else if (line.find("Alamat:") == 0)
@@ -956,11 +957,13 @@ void cari_anggota() {
         else if (line == "----") {
             // cek apakah keyword cocok
             if (kode.find(keyword) != string::npos ||
+                id.find(keyword) != string::npos ||
                 nama.find(keyword) != string::npos ||
                 email.find(keyword) != string::npos) {
 
                 cout << "\n=== Anggota Ditemukan ===\n";
                 cout << "Kode Anggota : " << kode << endl;
+                cout << "ID Anggota   : " << id << endl;
                 cout << "Nama         : " << nama << endl;
                 cout << "Alamat       : " << alamat << endl;
                 cout << "Tanggal Lahir: " << tanggal << endl;
